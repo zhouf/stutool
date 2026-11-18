@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>学生身份证明开具</title>
+<!-- 页面描述 -->
+<meta name="description" content="用于快速生成学生在校身份证明，支持打印和另存为PDF">
+<meta name="author" content="zhouf_t@swufe.edu.cn">
+<meta name="copyright" content="© 2026 zhouf_t@swufe.edu.cn">
+<meta name="generator" content="Hand-coded">
+<style>
+*{box-sizing: border-box;margin:0;padding:0;}
+body{padding:15px;background:#f5f5f5;font-size:16px;}
+.form-box{background:#fff;padding:20px;border-radius:8px;width:900px;max-width:100%;margin:0 auto 20px;}
+.item{margin:12px 0;}
+label{display:block;margin-bottom:6px;font-weight:bold;}
+input[type="text"],input[type="date"],input[type="file"]{width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;}
+#imgPreview{max-width:140px;margin:8px 0;border:1px solid #eee;display:none;}
+.btn{width:100%;padding:12px;background:#2b7bdd;color:#fff;border:none;border-radius:6px;margin-top:10px;font-weight:bold;}
+.gender-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* 证明模板：默认隐藏 A4纸张 */
+.proof-box{
+    display:none;
+    width:210mm;
+    min-height:287mm;
+    padding:120px;
+    background:#fff;
+    margin:30 auto;
+    position: relative;
+}
+.proof-title{
+    font-family: "方正小标宋简体", "华文中宋", "SimSun", serif;
+    text-align:center;
+    font-size:35px;
+    font-weight:bold;
+    margin-top: 60px;
+    margin-bottom:40px;
+    letter-spacing: 4px;
+}
+.proof-text{
+    font-family: "仿宋", "FangSong", "FZFS", serif;
+    font-size:25px;
+    line-height: 2;
+    margin: 12px 0;
+    text-indent: 2em;
+}
+.proof-text span {
+    font-size:24px;
+    line-height: 2;
+    margin: 12px 0;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 5px;
+    border-bottom: solid 1px;
+}
+/* proof-part 使用flex布局实现左右布局 */
+.proof-part {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 30px;
+}
+
+.proof-left {
+    flex: 1;
+    text-align: left;
+}
+
+.proof-right {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-left: 40px;
+}
+.proof-photo{
+    width:150px;
+    height:210px;
+    border:1px solid #ccc;
+}
+.photo-tip{
+    font-family: "仿宋", "FangSong", "FZFS", serif;
+    font-size:12px;
+    color:#ccc;
+}
+.sign-footer{
+    font-family: "仿宋", "FangSong", "FZFS", serif;
+    font-size: 25px;
+    margin-top: 50px;
+    text-align: right;
+    line-height: 2;
+}
+/* ========== 打印专用样式（核心）========== */
+@media print {
+    @page {size:A4;margin:0;}
+    body{background:#fff;}
+    body > * {
+        display: none !important;
+    }
+
+    /* 仅显示证明区域及其父级链路 */
+    #proofWrap {
+        display: block !important;
+    }
+    .proof-box{display:block !important;width:100%;height:auto;padding:20mm;}
+}
+</style>
+</head>
+<body>
+<!-- 填写表单区域 -->
+<div class="form-box">
+    <h3>填写学生信息</h3>
+    <div class="item">
+        <label>证明类型：</label>
+        <div class="gender-row">
+            <input type="radio" name="prooftype" id="proofstu" value="exam" checked>
+            <label for="proofstu">在校学生身份证明</label>
+            <input type="radio" name="prooftype" id="proofcet" value="cet">
+            <label for="proofcet">大学英语四六级身份证明</label>
+        </div>
+    </div>
+    <div class="item">
+        <label>姓名</label>
+        <input type="text" id="name" placeholder="请输入姓名" required>
+    </div>
+    <div class="item">
+        <label>性别：</label>
+        <div class="gender-row">
+            <input type="radio" name="sex" id="sexMale" value="男" checked>
+            <label for="sexMale">男</label>
+            <input type="radio" name="sex" id="sexFemale" value="女">
+            <label for="sexFemale">女</label>
+        </div>
+    </div>
+    <div class="item">
+        <label>民族：</label>
+        <input type="text" id="nation" required>
+    </div>
+    <div class="item">
+        <label>身份证号</label>
+        <input type="text" id="idcard" placeholder="请输入身份证号码" required>
+    </div>
+    <div class="item">
+        <label>出生日期</label>
+        <input type="date" id="birth" required>
+    </div>
+    <div class="item">
+        <label>学号</label>
+        <input type="text" id="stuId" placeholder="请输入学号" required>
+    </div>
+    <div class="item">
+        <label>年级：</label>
+        <input type="text" id="grade" placeholder="请输入年级" required>
+    </div>
+    <div class="item">
+        <label>专业：</label>
+        <input type="text" id="major" placeholder="请输入专业名称" required>
+    </div>
+    <div class="item">
+        <label>学院</label>
+        <input type="text" id="dept" placeholder="计算机与人工智能学院" required>
+    </div>
+    <div class="item">
+        <label>上传本人证件照</label>
+        <input type="file" id="fileImg" accept="image/*" required>
+        <img id="imgPreview">
+    </div>
+    <button class="btn" id="createBtn">生成证明 → 打印/另存PDF</button>
+</div>
+
+
+
+
+<!-- 身份证明模板（默认隐藏，生成后填充数据） -->
+<div class="proof-box" id="proofWrap">
+    <h2 id="p_title" class="proof-title">在校学生身份证明</h2>
+    
+
+    <p class="proof-text">兹证明<span id="p_name"></span>，性别<span id="p_gender"></span>，民族<span id="p_nation"></span>，身份证号码<span id="p_idcard"></span>，出生于<span id="p_birth"></span>，学号<span id="p_stuid"></span>，系本学院<span id="p_grade"></span>级<span id="p_major"></span>专业在校学生。</p>
+    <div class="proof-part">
+        <div class="proof-left">
+            <p class="proof-text" style="margin-top:20px;">情况属实。</p>
+            <p class="proof-text" style="margin-top:30px;">辅导员签字：</p>
+        </div>
+        <div class="proof-right">
+            <img class="proof-photo" id="proofPhoto" alt="证件照粘贴处">
+            <p class="photo-tip">贴照片处（盖学院公章）</p>
+        </div>
+    </div>
+
+    <div class="sign-footer">
+        <p id="p_dept">XXXX学院</p>
+        <p id="p_date"></p>
+    </div>
+</div>
+
+<script>
+let imgBase64 = '';
+const fileInput = document.getElementById('fileImg');
+const previewImg = document.getElementById('imgPreview');
+// 获取元素
+var idcardInput = document.getElementById('idcard');
+var birthInput = document.getElementById('birth');
+
+// 选择照片预览（本地处理，不上传）
+fileInput.onchange = function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = ev=>{
+        imgBase64 = ev.target.result;
+        previewImg.src = imgBase64;
+        previewImg.style.display = 'block';
+    }
+}
+
+// 获取单选框选中值
+function getRadioVal(name) {
+  const radios = document.querySelectorAll(`input[name="${name}"]`);
+  for (let r of radios) {
+    if (r.checked) return r.value;
+  }
+  return '';
+}
+
+// 从身份证号提取出生日期并填充到指定控件
+function extractBirthDateInto(idcard,date_obj) {
+    if (!idcard || idcard.length < 14) return '';
+    // 身份证第7-14位为出生日期（YYYYMMDD）
+    var birthStr = idcard.substring(6, 14);
+    var year = birthStr.substring(0, 4);
+    var month = birthStr.substring(4, 6);
+    var day = birthStr.substring(6, 8);
+    date_obj.value = year + '-' + month + '-' + day;
+}
+function formatDateFromInput(dateStr) {
+    if (!dateStr) return '';
+    
+    // 分割日期字符串
+    var parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    
+    var year = parts[0];
+    var month = parts[1];
+    var day = parts[2];
+    
+    return year + '年' + month + '月' + day + '日';
+}
+function formatToday() {
+    var date = new Date();
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var day = String(date.getDate()).padStart(2, '0');
+    return year + '年' + month + '月' + day + '日';
+}
+
+idcardInput.addEventListener('input', function() {
+    var idcard = this.value.replace(/\s/g, ''); // 去除空格
+    if (idcard.length >= 14) {
+        extractBirthDateInto(idcard, birthInput);
+    }
+});
+
+// 点击生成证明，填充数据并唤起打印
+document.getElementById('createBtn').onclick = function(){
+    // 获取表单值
+    const name = document.getElementById('name').value.trim();
+    const stuid = document.getElementById('stuId').value.trim();
+    const dept = document.getElementById('dept').value.trim();
+    const birth = document.getElementById('birth').value.trim();
+    const idcard = document.getElementById('idcard').value.trim();
+
+    if(!name||!stuid||!dept||!idcard){
+        alert('请完整填写所有信息');
+        return;
+    }
+
+    // 填充到证明模板
+    document.getElementById('p_name').textContent = name;
+    document.getElementById('p_stuid').textContent = stuid;
+    document.getElementById('p_dept').textContent = dept;
+    document.getElementById('p_idcard').textContent = idcard;
+    document.getElementById('p_date').textContent = formatToday();
+
+    // 赋值给证明模板性别
+    document.getElementById('p_gender').textContent = getRadioVal('sex');
+    document.getElementById('p_nation').textContent = document.getElementById('nation').value.trim();
+    document.getElementById('p_birth').textContent = formatDateFromInput(birth);
+    document.getElementById('p_grade').textContent = document.getElementById('grade').value.trim();
+    document.getElementById('p_major').textContent = document.getElementById('major').value.trim();
+    document.getElementById('p_title').innerHTML = getRadioVal('prooftype') === 'cet' ? '全国大学外语四六级考试<br>在校学生身份证明' : '在校学生身份证明';
+    if(imgBase64){
+        document.getElementById('proofPhoto').src = imgBase64;
+    }
+
+    // 唤起浏览器打印弹窗
+    setTimeout(()=>window.print(),100);
+}
+</script>
+</body>
+</html>
