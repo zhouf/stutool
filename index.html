@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>学生身份证明开具</title>
 <!-- 页面描述 -->
-<meta name="description" content="用于快速生成学生在校身份证明，支持打印和另存为PDF">
+<meta name="description" content="用于快速生成学生在校身份证明，支持手机、电脑直接生成PDF文件">
 <meta name="author" content="zhouf_t@swufe.edu.cn">
 <meta name="copyright" content="© 2026 zhouf_t@swufe.edu.cn">
 <meta name="generator" content="Hand-coded">
@@ -17,97 +17,19 @@ body{padding:15px;background:#f5f5f5;font-size:16px;}
 label{display:block;margin-bottom:6px;font-weight:bold;}
 input[type="text"],input[type="date"],input[type="file"]{width:100%;padding:10px;border:1px solid #ccc;border-radius:4px;}
 #imgPreview{max-width:140px;margin:8px 0;border:1px solid #eee;display:none;}
-.btn{width:100%;padding:12px;background:#2b7bdd;color:#fff;border:none;border-radius:6px;margin-top:10px;font-weight:bold;}
+.btn{display:block;width:100%;padding:12px;background:#2b7bdd;color:#fff;border:none;border-radius:6px;margin-top:10px;font-weight:bold;text-align:center;text-decoration:none;cursor:pointer;}
+.btn:disabled{background:#9bb9dd;cursor:default;}
+.btn-secondary{background:#6c757d;}
+.btn-secondary:hover{background:#565e64;}
+#resultBox{background:#fff;padding:20px;border-radius:8px;width:900px;max-width:100%;margin:0 auto 20px;}
+#resultBox h4{margin-bottom:8px;}
+#resultBox .tip{font-size:13px;color:#888;margin-top:12px;line-height:1.6;}
+#pdfFileName{word-break:break-all;font-size:14px;color:#555;margin-bottom:10px;}
+/* 性别 / 证明类型 单行布局 */
 .gender-row {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-/* 证明模板：默认隐藏 A4纸张 */
-.proof-box{
-    display:none;
-    width:210mm;
-    min-height:287mm;
-    padding:120px;
-    background:#fff;
-    margin:30 auto;
-    position: relative;
-}
-.proof-title{
-    font-family: "方正小标宋简体", "华文中宋", "SimSun", serif;
-    text-align:center;
-    font-size:35px;
-    font-weight:bold;
-    margin-top: 60px;
-    margin-bottom:40px;
-    letter-spacing: 4px;
-}
-.proof-text{
-    font-family: "仿宋", "FangSong", "FZFS", serif;
-    font-size:25px;
-    line-height: 2;
-    margin: 12px 0;
-    text-indent: 2em;
-}
-.proof-text span {
-    font-size:24px;
-    line-height: 2;
-    margin: 12px 0;
-    padding-left: 12px;
-    padding-right: 12px;
-    padding-bottom: 5px;
-    border-bottom: solid 1px;
-}
-/* proof-part 使用flex布局实现左右布局 */
-.proof-part {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-top: 30px;
-}
-
-.proof-left {
-    flex: 1;
-    text-align: left;
-}
-
-.proof-right {
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-left: 40px;
-}
-.proof-photo{
-    width:150px;
-    height:210px;
-    border:1px solid #ccc;
-}
-.photo-tip{
-    font-family: "仿宋", "FangSong", "FZFS", serif;
-    font-size:12px;
-    color:#ccc;
-}
-.sign-footer{
-    font-family: "仿宋", "FangSong", "FZFS", serif;
-    font-size: 25px;
-    margin-top: 50px;
-    text-align: right;
-    line-height: 2;
-}
-/* ========== 打印专用样式（核心）========== */
-@media print {
-    @page {size:A4;margin:0;}
-    body{background:#fff;}
-    body > * {
-        display: none !important;
-    }
-
-    /* 仅显示证明区域及其父级链路 */
-    #proofWrap {
-        display: block !important;
-    }
-    .proof-box{display:block !important;width:100%;height:auto;padding:20mm;}
 }
 </style>
 </head>
@@ -167,45 +89,25 @@ input[type="text"],input[type="date"],input[type="file"]{width:100%;padding:10px
     </div>
     <div class="item">
         <label>上传本人证件照</label>
-        <input type="file" id="fileImg" accept="image/*" required>
+        <input type="file" id="fileImg" accept="image/*">
         <img id="imgPreview">
     </div>
-    <button class="btn" id="createBtn">生成证明 → 打印/另存PDF</button>
+    <button class="btn" id="createBtn">生成 PDF 文件（手机 / 电脑通用）</button>
 </div>
 
-
-
-
-<!-- 身份证明模板（默认隐藏，生成后填充数据） -->
-<div class="proof-box" id="proofWrap">
-    <h2 id="p_title" class="proof-title">在校学生身份证明</h2>
-    
-
-    <p class="proof-text">兹证明<span id="p_name"></span>，性别<span id="p_gender"></span>，民族<span id="p_nation"></span>，身份证号码<span id="p_idcard"></span>，出生于<span id="p_birth"></span>，学号<span id="p_stuid"></span>，系本学院<span id="p_grade"></span>级<span id="p_major"></span>专业在校学生。</p>
-    <div class="proof-part">
-        <div class="proof-left">
-            <p class="proof-text" style="margin-top:20px;">情况属实。</p>
-            <p class="proof-text" style="margin-top:30px;">辅导员签字：</p>
-        </div>
-        <div class="proof-right">
-            <img class="proof-photo" id="proofPhoto" alt="证件照粘贴处">
-            <p class="photo-tip">贴照片处（盖学院公章）</p>
-        </div>
-    </div>
-
-    <div class="sign-footer">
-        <p id="p_dept">XXXX学院</p>
-        <p id="p_date"></p>
-    </div>
+<!-- 生成结果区域 -->
+<div class="result-box" id="resultBox" style="display:none;">
+    <h4>PDF 已生成</h4>
+    <div id="pdfFileName"></div>
+    <a class="btn" id="downloadLink" download>下载 PDF 文件</a>
+    <a class="btn btn-secondary" id="openLink" target="_blank" rel="noopener">打开 / 预览 PDF</a>
+    <p class="tip">手机上如果没有自动下载，请点"打开 / 预览 PDF"，在预览页面长按文件选择"存储到文件/下载"。本工具不会上传您的任何信息，全部在本机完成。</p>
 </div>
 
 <script>
 let imgBase64 = '';
 const fileInput = document.getElementById('fileImg');
 const previewImg = document.getElementById('imgPreview');
-// 获取元素
-var idcardInput = document.getElementById('idcard');
-var birthInput = document.getElementById('birth');
 
 // 选择照片预览（本地处理，不上传）
 fileInput.onchange = function(e){
@@ -241,16 +143,9 @@ function extractBirthDateInto(idcard,date_obj) {
 }
 function formatDateFromInput(dateStr) {
     if (!dateStr) return '';
-    
-    // 分割日期字符串
     var parts = dateStr.split('-');
     if (parts.length !== 3) return dateStr;
-    
-    var year = parts[0];
-    var month = parts[1];
-    var day = parts[2];
-    
-    return year + '年' + month + '月' + day + '日';
+    return parts[0] + '年' + parts[1] + '月' + parts[2] + '日';
 }
 function formatToday() {
     var date = new Date();
@@ -260,48 +155,304 @@ function formatToday() {
     return year + '年' + month + '月' + day + '日';
 }
 
-idcardInput.addEventListener('input', function() {
+document.getElementById('idcard').addEventListener('input', function() {
     var idcard = this.value.replace(/\s/g, ''); // 去除空格
     if (idcard.length >= 14) {
-        extractBirthDateInto(idcard, birthInput);
+        extractBirthDateInto(idcard, document.getElementById('birth'));
     }
 });
 
-// 点击生成证明，填充数据并唤起打印
-document.getElementById('createBtn').onclick = function(){
-    // 获取表单值
-    const name = document.getElementById('name').value.trim();
-    const stuid = document.getElementById('stuId').value.trim();
-    const dept = document.getElementById('dept').value.trim();
-    const birth = document.getElementById('birth').value.trim();
-    const idcard = document.getElementById('idcard').value.trim();
-
-    if(!name||!stuid||!dept||!idcard){
-        alert('请完整填写所有信息');
-        return;
+// 读取并校验表单数据
+function collectData() {
+    const data = {
+        name: document.getElementById('name').value.trim(),
+        sex: getRadioVal('sex'),
+        nation: document.getElementById('nation').value.trim(),
+        idcard: document.getElementById('idcard').value.trim(),
+        birth: formatDateFromInput(document.getElementById('birth').value.trim()),
+        stuid: document.getElementById('stuId').value.trim(),
+        grade: document.getElementById('grade').value.trim(),
+        major: document.getElementById('major').value.trim(),
+        dept: document.getElementById('dept').value.trim(),
+        isCet: getRadioVal('prooftype') === 'cet',
+        date: formatToday()
+    };
+    for (const key of ['name','nation','idcard','stuid','grade','major','dept']) {
+        if (!data[key]) {
+            alert('请完整填写所有信息');
+            return null;
+        }
     }
-
-    // 填充到证明模板
-    document.getElementById('p_name').textContent = name;
-    document.getElementById('p_stuid').textContent = stuid;
-    document.getElementById('p_dept').textContent = dept;
-    document.getElementById('p_idcard').textContent = idcard;
-    document.getElementById('p_date').textContent = formatToday();
-
-    // 赋值给证明模板性别
-    document.getElementById('p_gender').textContent = getRadioVal('sex');
-    document.getElementById('p_nation').textContent = document.getElementById('nation').value.trim();
-    document.getElementById('p_birth').textContent = formatDateFromInput(birth);
-    document.getElementById('p_grade').textContent = document.getElementById('grade').value.trim();
-    document.getElementById('p_major').textContent = document.getElementById('major').value.trim();
-    document.getElementById('p_title').innerHTML = getRadioVal('prooftype') === 'cet' ? '全国大学外语四六级考试<br>在校学生身份证明' : '在校学生身份证明';
-    if(imgBase64){
-        document.getElementById('proofPhoto').src = imgBase64;
+    if (!data.birth) {
+        alert('请选择出生日期');
+        return null;
     }
-
-    // 唤起浏览器打印弹窗
-    setTimeout(()=>window.print(),100);
+    return data;
 }
+
+/* =========================================================
+   以下为纯前端生成 PDF 的实现（不依赖任何外部库，手机可用）
+   思路：用 Canvas 按 A4 版式绘制证明 -> 转为 JPEG
+        -> 手工封装成标准 PDF（内嵌一张 JPEG 图片）
+   ========================================================= */
+
+// ★★★ 字体配置：想改生成 PDF 的字体，只改下面两个常量即可 ★★★
+// 写法：引号里填字体名，用英文逗号分隔多个候选，浏览器会依次选用设备已安装的字体。
+// 注意：字体必须是手机上/电脑上实际安装过的才会生效，否则自动回退到系统字体。
+// 常用候选：宋体/SimSun、仿宋/FangSong、黑体/SimHei、楷体/KaiTi、serif、sans-serif
+const FONT_TITLE = '"方正小标宋简体","华文中宋","SimSun","宋体",serif'; // 标题字体
+const FONT_BODY  = '"仿宋","FangSong","FZFS","SimSun","宋体",serif';     // 正文/落款/下划线填写字体
+
+// 在画布上绘制带下划线的自动换行段落
+// ★★★ 想调整"下划线内文字前后的空白"，只改下面 FIELD_GAP 这个数字即可（单位：像素）★★★
+// 效果：填写文字写在横线内部，文字前后各留 FIELD_GAP 空白；横线恰好覆盖"空白+文字+空白"，
+//       不会压到前后固定文字的下面，横线与前面固定文字之间保持正常排版距离。
+function drawSegmentsWrapped(ctx, segments, x, y, maxW, lineH, firstIndent) {
+    const FIELD_GAP = 20; // 横线内、填写文字前后的空白宽度
+    let cx = x + (firstIndent || 0);
+    let cy = y;
+    let ulStart = null; // 当前横线的起点（含文字前面的空白）
+    ctx.textAlign = 'left';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    function closeUnderline() {
+        if (ulStart === null) return;
+        ctx.beginPath();
+        ctx.moveTo(ulStart, cy + 10);
+        ctx.lineTo(cx, cy + 10);
+        ctx.stroke();
+        ulStart = null;
+    }
+    for (const seg of segments) {
+        if (seg.u) {
+            // 文字前面的空白：文字右移，横线从留白起点开始（紧接前面的固定文字）
+            cx += FIELD_GAP;
+            ulStart = cx - FIELD_GAP;
+        }
+        for (const ch of seg.t) {
+            const cw = ctx.measureText(ch).width;
+            if (cx + cw > x + maxW && cx > x) {
+                closeUnderline(); // 换行前先闭合当前横线
+                cx = x;
+                cy += lineH;
+                if (seg.u) ulStart = x; // 换行后若仍在填写字段内（如身份证号），重新起一条横线
+            }
+            ctx.fillText(ch, cx, cy);
+            cx += cw;
+        }
+        if (seg.u) {
+            // 文字后面的空白：横线延伸覆盖这段留白，再闭合
+            cx += FIELD_GAP;
+            closeUnderline();
+        }
+    }
+    return cy + lineH;
+}
+
+// 加载照片（没有照片时返回 null）
+function loadPhoto(src) {
+    return new Promise(resolve => {
+        if (!src) return resolve(null);
+        const im = new Image();
+        im.onload = () => resolve(im);
+        im.onerror = () => resolve(null);
+        im.src = src;
+    });
+}
+
+// 绘制整页 A4 证明，返回 canvas
+function drawProof(data, photo) {
+    const W = 1240, H = 1754; // A4 纸张，约 150 DPI
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#000';
+    ctx.textBaseline = 'alphabetic';
+
+    const left = 160, right = W - 160, contentW = right - left;
+
+    // 标题
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 60px ' + FONT_TITLE;
+    let titleY;
+    if (data.isCet) {
+        ctx.fillText('全国大学外语四六级考试', W / 2, 210);
+        ctx.fillText('在校学生身份证明', W / 2, 290);
+        titleY = 290;
+    } else {
+        ctx.fillText('在校学生身份证明', W / 2, 250);
+        titleY = 250;
+    }
+
+    // 正文（带下划线填写项）
+    ctx.font = '38px ' + FONT_BODY;
+    const lineH = 76;
+    let y = titleY + 170;
+    const segments = [
+        {t:'兹证明', u:false}, {t:data.name, u:true},
+        {t:'，性别', u:false}, {t:data.sex, u:true},
+        {t:'，民族', u:false}, {t:data.nation, u:true},
+        {t:'，身份证号码', u:false}, {t:data.idcard, u:true},
+        {t:'，出生于', u:false}, {t:data.birth, u:true},
+        {t:'，学号', u:false}, {t:data.stuid, u:true},
+        {t:'，系本学院', u:false}, {t:data.grade, u:true},
+        {t:'级', u:false}, {t:data.major, u:true},
+        {t:'专业在校学生。', u:false}
+    ];
+    y = drawSegmentsWrapped(ctx, segments, left, y, contentW, lineH, 76);
+
+    // 情况属实 / 辅导员签字
+    y += 30;
+    ctx.fillText('情况属实。', left + 76, y);
+    y += lineH;
+    ctx.fillText('辅导员签字：', left + 76, y);
+
+    // 照片框（右侧）
+    const pw = 240, ph = 336;
+    const px = right - pw, py = titleY + 420;
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(px, py, pw, ph);
+    if (photo) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(px + 2, py + 2, pw - 4, ph - 4);
+        ctx.clip();
+        // 按短边裁切，保持照片不变形
+        const scale = Math.max((pw - 4) / photo.width, (ph - 4) / photo.height);
+        const dw = photo.width * scale, dh = photo.height * scale;
+        ctx.drawImage(photo, px + (pw - dw) / 2, py + (ph - dh) / 2, dw, dh);
+        ctx.restore();
+    } else {
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#bbb';
+        ctx.font = '26px ' + FONT_BODY;
+        ctx.fillText('照片', px + pw / 2, py + ph / 2);
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'left';
+    }
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#999';
+    ctx.font = '22px ' + FONT_BODY;
+    ctx.fillText('贴照片处（盖学院公章）', px + pw / 2, py + ph + 40);
+
+    // 落款
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#000';
+    ctx.font = '38px ' + FONT_BODY;
+    ctx.fillText(data.dept, right, 1510);
+    ctx.fillText(data.date, right, 1590);
+
+    return canvas;
+}
+
+// 把字节数组拼成 PDF 文件（单个 JPEG 页面）
+function buildPdf(jpegBytes, imgW, imgH) {
+    const enc = new TextEncoder();
+    const parts = [];
+    let pos = 0;
+    const offsets = [];
+    function push(bytes) {
+        parts.push(bytes);
+        pos += bytes.length;
+    }
+    function pushStr(s) {
+        push(enc.encode(s));
+    }
+    function addObj(num, body) {
+        offsets[num] = pos;
+        pushStr(num + ' 0 obj\n');
+        if (typeof body === 'string') pushStr(body);
+        else push(body);
+        pushStr('\nendobj\n');
+    }
+
+    const pageW = 595.28, pageH = 841.89; // A4，单位 pt
+    pushStr('%PDF-1.4\n');
+    push(new Uint8Array([0x25, 0xE2, 0xE3, 0xCF, 0xD3, 0x0A])); // 二进制标记
+
+    addObj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+    addObj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+    addObj(3, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + pageW + ' ' + pageH +
+             '] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');
+
+    // 图片对象：JPEG 直接以 DCTDecode 嵌入，无需重新编码
+    const imgDict = '<< /Type /XObject /Subtype /Image /Width ' + imgW +
+        ' /Height ' + imgH + ' /ColorSpace /DeviceRGB /BitsPerComponent 8' +
+        ' /Filter /DCTDecode /Length ' + jpegBytes.length + ' >>\nstream\n';
+    addObj(4, (function(){
+        const head = enc.encode(imgDict);
+        const tail = enc.encode('\nendstream');
+        const all = new Uint8Array(head.length + jpegBytes.length + tail.length);
+        all.set(head, 0);
+        all.set(jpegBytes, head.length);
+        all.set(tail, head.length + jpegBytes.length);
+        return all;
+    })());
+
+    const content = 'q\n' + pageW + ' 0 0 ' + pageH + ' 0 0 cm\n/Im0 Do\nQ\n';
+    addObj(5, '<< /Length ' + enc.encode(content).length + ' >>\nstream\n' + content + 'endstream');
+
+    const xrefPos = pos;
+    let xref = 'xref\n0 6\n0000000000 65535 f \n';
+    for (let i = 1; i <= 5; i++) {
+        xref += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+    }
+    xref += 'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xrefPos + '\n%%EOF';
+    pushStr(xref);
+
+    return new Blob(parts, {type: 'application/pdf'});
+}
+
+// dataURL 转字节数组
+function dataUrlToBytes(dataUrl) {
+    const bin = atob(dataUrl.split(',')[1]);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return arr;
+}
+
+let currentPdfUrl = '';
+
+// 主流程：生成 PDF
+document.getElementById('createBtn').onclick = async function() {
+    const data = collectData();
+    if (!data) return;
+
+    const btn = this;
+    btn.disabled = true;
+    btn.textContent = '正在生成 PDF…';
+    try {
+        const photo = await loadPhoto(imgBase64);
+        const canvas = drawProof(data, photo);
+        const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        const blob = buildPdf(dataUrlToBytes(jpegDataUrl), canvas.width, canvas.height);
+
+        if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+        currentPdfUrl = URL.createObjectURL(blob);
+
+        const fileName = (data.isCet ? '四六级在校身份证明-' : '在校学生身份证明-') +
+                         data.name.replace(/[\\/:*?"<>|]/g, '') + '.pdf';
+        const downloadLink = document.getElementById('downloadLink');
+        const openLink = document.getElementById('openLink');
+        downloadLink.href = currentPdfUrl;
+        downloadLink.download = fileName;
+        openLink.href = currentPdfUrl;
+        document.getElementById('pdfFileName').textContent = '文件名：' + fileName;
+        document.getElementById('resultBox').style.display = 'block';
+        document.getElementById('resultBox').scrollIntoView({behavior:'smooth', block:'start'});
+    } catch (err) {
+        console.error(err);
+        alert('PDF 生成失败，请重试或更换浏览器。');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '生成 PDF 文件（手机 / 电脑通用）';
+    }
+};
 </script>
 </body>
 </html>
